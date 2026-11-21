@@ -129,7 +129,7 @@
             type="number"
             min="1"
             max="20"
-            step="0.05"
+            step="0.01"
             inputmode="decimal"
           />
         </label>

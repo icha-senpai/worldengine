@@ -238,6 +238,14 @@ export function importCraftingCatalog(input: ImportInputs): CraftingCatalog {
       )
     )
       throw Error(`Invalid probabilities in item list ${bundle.item_list_id}`);
+    // Game item lists are relative weights, including empty outcomes. They
+    // need not sum to one (Smooth Gypsite uses weights 4999 and 1).
+    const totalWeight = possibilities.reduce(
+      (sum, row) => sum + row.probability,
+      0,
+    );
+    if (!Number.isFinite(totalWeight) || totalWeight <= 0)
+      throw Error(`Invalid probabilities in item list ${bundle.item_list_id}`);
     const targets = new Set(
       possibilities.flatMap((p) => p.items.map(stackKey)),
     );
@@ -251,7 +259,8 @@ export function importCraftingCatalog(input: ImportInputs): CraftingCatalog {
       );
       const quantity = round(
         possibilities.reduce(
-          (n, p, index) => n + p.probability * quantities[index],
+          (n, p, index) =>
+            n + (p.probability / totalWeight) * quantities[index],
           0,
         ),
       );

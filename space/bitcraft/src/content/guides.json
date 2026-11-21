@@ -846,7 +846,7 @@
                                     "content": [
                                         {
                                             "type": "text",
-                                            "text": "Maker trees are empire resources found in certain biomes. Their location makes the watchtowers controlling that territory more valuable. Resource-harvesting access follows the empire rank permissions."
+                                            "text": "Maker trees are empire resources found in certain biomes. Their location makes the watchtowers controlling that territory more valuable. Resource-harvesting access follows the empire rank permissions. Since the November 19 update, Maker's Trees have 10 health and regrow after 23\u201324 hours, providing more harvesting opportunities per tree."
                                         }
                                     ]
                                 }
@@ -940,7 +940,7 @@
             "name": "footmouthkick"
         },
         "published_at": "2026-09-30T19:16:30+00:00",
-        "updated_at": "2026-09-30T19:16:30+00:00"
+        "updated_at": "2026-11-21T01:41:10.916Z"
     },
     {
         "id": 18,
@@ -3882,6 +3882,15 @@
                     ]
                 },
                 {
+                    "type": "paragraph",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Since the November 19 update, Nubi Goat mounts II\u2013IV and Cervus mounts I\u2013II can swim. Swimming is limited to these currently supported mount variants; do not assume every mount or cart can cross deep water."
+                        }
+                    ]
+                },
+                {
                     "type": "codeBlock",
                     "attrs": {
                         "language": null
@@ -4352,7 +4361,7 @@
             "name": "footmouthkick"
         },
         "published_at": "2026-09-30T18:58:40+00:00",
-        "updated_at": "2026-09-30T18:58:40+00:00"
+        "updated_at": "2026-11-21T01:41:10.916Z"
     },
     {
         "id": 13,
@@ -4667,6 +4676,15 @@
                                     "type": "bold"
                                 }
                             ]
+                        }
+                    ]
+                },
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "Since the November 19 update, Nubi Goat mounts II\u2013IV and Cervus mounts I\u2013II can swim. Swimming is limited to these currently supported mount variants; do not assume every mount or cart can cross deep water."
                         }
                     ]
                 },
@@ -5430,7 +5448,7 @@
             "name": "footmouthkick"
         },
         "published_at": "2026-09-30T18:57:49+00:00",
-        "updated_at": "2026-09-30T18:57:49+00:00"
+        "updated_at": "2026-11-21T01:41:10.916Z"
     },
     {
         "id": 12,
@@ -15589,21 +15607,8 @@
                     },
                     "content": [
                         {
-                            "text": "E.g. a Mud Mound drops clay at 12% per damage point, so a 10-damage swing makes 10 separate rolls, about ",
-                            "type": "text"
-                        },
-                        {
-                            "text": "1.2 clay per swing",
                             "type": "text",
-                            "marks": [
-                                {
-                                    "type": "bold"
-                                }
-                            ]
-                        },
-                        {
-                            "text": ". The Mud Hole is a different roll that also happens to be 12% (see below). That's probably why the two numbers get mixed up.",
-                            "type": "text"
+                            "text": "A Mud Mound drops clay at 12% per damage point, so a 10-damage swing makes 10 separate rolls, about 1.2 clay per swing. Its Mud Hole chance is a separate 13.2% roll when the node is depleted; it is not rolled again for each point of damage."
                         }
                     ]
                 },
@@ -15638,21 +15643,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Every clay node from Mud Mound (T1) to Flawless Clay (T10), plus the Clay Termite Mound, has a ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "12%",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " chance to leave a Mud Hole of its own tier when depleted. The other 88% leaves nothing.",
-                                            "type": "text"
+                                            "text": "Mud Hole chances now vary by clay resource: Mud Mound (T1) 13.2%, Clay Mound (T2) 20.17%, Earthenware Clay (T3) 26.28%, Fine Clay (T4) 42.72%, and Kaolinite Clay (T5) 63.16%. Bentonite, Ornate, Pristine, Magnificent and Flawless Clay (T6\u2013T10) have a 100% chance. The Clay Termite Mound has its own 60% chance. These are depletion rolls for a Mud Hole of the matching tier."
                                         }
                                     ]
                                 }
@@ -15669,7 +15661,7 @@
                                     "content": [
                                         {
                                             "type": "text",
-                                            "text": "The current weighted outcome is 12 for a Mud Hole versus 88 for no hole."
+                                            "text": "For Mud Mound, the current outcome weights are 13.2 for a Mud Hole and 86.8 for no hole. Other clay resources use their own weights; the old blanket 12% rate is obsolete."
                                         }
                                     ]
                                 }
@@ -15997,21 +15989,8 @@
                                     },
                                     "content": [
                                         {
-                                            "text": "Sand piles (Rough through Flawless) have a ",
-                                            "type": "text"
-                                        },
-                                        {
-                                            "text": "6%",
                                             "type": "text",
-                                            "marks": [
-                                                {
-                                                    "type": "bold"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "text": " chance to leave an Inactive Gypsite Pit when depleted. It spawns on the same tile with no terrain checks, so it effectively always appears on a success.",
-                                            "type": "text"
+                                            "text": "Gypsite Pit chances now vary by sand resource: Rough Sand Pile 7.5%, Olivine Sand 7.56%, Crystalized Sand 8.76%, Garnet Sand 13.59%, Coral Sand 21.05%, Desert Sand 30.4%, Ornate Sand 47.17%, Pristine Sand 74.14%, and Magnificent or Flawless Sand 100%. A successful depletion roll spawns an Inactive Gypsite Pit on the same tile."
                                         }
                                     ]
                                 }
@@ -16458,13 +16437,17 @@
                     },
                     "content": [
                         {
-                            "text": "Chests are less generous than their labels",
                             "type": "text",
-                            "marks": [
-                                {
-                                    "type": "bold"
-                                }
-                            ]
+                            "text": "Ancient chest rarity odds"
+                        }
+                    ]
+                },
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": "The November 19 update substantially increased item drop chances when opening Lost Shipments, Lost Treasures and Lost Wreckage. The ancient-chest rarity examples below describe a different loot system."
                         }
                     ]
                 },
@@ -16582,7 +16565,7 @@
                                     "content": [
                                         {
                                             "type": "text",
-                                            "text": "Mud Mound still uses a 12% Mud Hole destruction outcome; that is independent of its 12% per-damage clay-output roll. Do not multiply the cave probability by the number of swings."
+                                            "text": "Mud Mound uses a 13.2% Mud Hole depletion outcome, independent of its 12% per-damage clay-output roll. Do not multiply the cave probability by the number of swings."
                                         }
                                     ]
                                 }
@@ -16676,7 +16659,7 @@
             "name": "footmouthkick"
         },
         "published_at": "2026-09-30T18:43:20+00:00",
-        "updated_at": "2026-09-30T18:43:20+00:00"
+        "updated_at": "2026-11-21T01:41:10.916Z"
     },
     {
         "id": 1,

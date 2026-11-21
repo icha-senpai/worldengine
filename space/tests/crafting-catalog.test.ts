@@ -107,6 +107,27 @@ function fixture(): ImportInputs {
 }
 
 describe("crafting catalog importer", () => {
+  it("normalizes relative loot weights and includes empty outcomes in the denominator", () => {
+    const source = fixture();
+    for (const row of source.lists[0].possibilities) row.probability *= 100;
+    const normalized = importCraftingCatalog(source);
+    expect(normalized.recipes["item:1"][0].outputQuantity).toBe(1.5);
+    source.lists[0].possibilities = [
+      { probability: 4999, items: [] },
+      {
+        probability: 1,
+        items: [{ item_id: 1, item_type: "Item", quantity: 1 }],
+      },
+    ];
+    expect(
+      importCraftingCatalog(source).recipes["item:1"][0].outputQuantity,
+    ).toBe(0.0002);
+    source.lists[0].possibilities.forEach((row) => (row.probability = 0));
+    expect(() => importCraftingCatalog(source)).toThrow(
+      /Invalid probabilities/,
+    );
+  });
+
   it("resolves weighted bundle contents and classifies routes once at import", () => {
     const data = importCraftingCatalog(fixture());
     const clay = data.recipes["item:1"];

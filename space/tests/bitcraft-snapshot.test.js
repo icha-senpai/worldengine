@@ -8,6 +8,32 @@ import {
 } from "../src/bitcraft-ui/gatheringEstimates";
 
 describe("public BitCraft snapshot", () => {
+  it("uses November 19 food ingredients, removes the research funnel, and normalizes rare drops", () => {
+    const recipe = (key, id) =>
+      catalog.details[key].craftingRecipes.find((row) => row.id === id);
+    expect(recipe("item:127337957", 2105423272).consumedItemStacks).toEqual([
+      { item_id: 907267894, item_type: "item", quantity: 1 },
+    ]);
+    expect(recipe("item:1893904106", 113397106).consumedItemStacks).toEqual([
+      { item_id: 51716987, item_type: "item", quantity: 5 },
+    ]);
+    expect(
+      recipe("item:2220018", 220005).consumedItemStacks.some(
+        (row) => row.item_id === 1210004,
+      ),
+    ).toBe(false);
+    expect(catalog.entries.some((row) => row.id === 1673714271)).toBe(false);
+    expect(
+      catalog.entries.find((row) => row.resourceId === 52).resource.name,
+    ).toBe("Sodalite Outcrop");
+    expect(
+      routes.recipes["item:706688339"].find(
+        (row) =>
+          row.id === "extraction:912157791:item:706688339:bundle:1952387304",
+      ).outputQuantity,
+    ).toBe(0.0002);
+  });
+
   it("uses the 1.0 Hexite yields in tool-rate estimates", () => {
     const settings = {
       ...gatheringDefaults,
@@ -46,9 +72,9 @@ describe("public BitCraft snapshot", () => {
     ).toBe(false);
   });
   it("keeps current release provenance and exposes new hunting recipes", () => {
-    expect(catalog.generatedAt).toBe("2026-11-14T08:43:41Z");
+    expect(catalog.generatedAt).toBe("2026-11-19T17:25:51Z");
     expect(catalog.source.commit).toBe(
-      "1470a29be23d770e3db99e9cf65a88ca57a6ef09",
+      "856b4f3702785b1c32812e719b650fee077a6fac",
     );
     const lures = catalog.items.filter((item) =>
       /Animal Lure$/.test(item.name),
@@ -64,7 +90,7 @@ describe("public BitCraft snapshot", () => {
       catalog.entries.every((entry) => entry.skill.name && entry.resource),
     ).toBe(true);
     expect(routes.omissions).toEqual([]);
-    expect(catalog.excludedRecipes).toContainEqual({
+    expect(catalog.excludedRecipes).not.toContainEqual({
       kind: "extraction",
       id: 1673714271,
       reason: "No resource or cargo target",

@@ -19,19 +19,19 @@ npm run bitcraft:catalog -- .runtime/bitcraft-release-input --check
 The importer reads the checked-in public UI export (`catalog.json` and
 `catalog-additions.json`) for item metadata and direct recipe definitions, plus
 the public item, item-list, resource, extraction and skill definitions. It
-resolves output bundles through one general path and includes eligible resource
+resolves output bundles through one general path, normalizing relative weights (including empty outcomes) and includes eligible resource
 destruction rewards. This replaces the separate wood-log, bait and package
 material runtime enrichments. Refresh the base UI export first with
 `scripts/import-bitcraft-snapshot.mjs`; it reads the public `cereal/cs` JSON
 directly, without Laravel or a player database. The old PHP exporter is a legacy
 reference and must not overwrite a newer snapshot.
 
-The current release is November 14, 2026, pinned to
-[`1470a29be23d770e3db99e9cf65a88ca57a6ef09`](https://github.com/BitCraftToolBox/BitCraft_GameData/tree/1470a29be23d770e3db99e9cf65a88ca57a6ef09/static).
+The current data release is November 19, 2026, pinned to
+[`856b4f3702785b1c32812e719b650fee077a6fac`](https://github.com/BitCraftToolBox/BitCraft_GameData/tree/856b4f3702785b1c32812e719b650fee077a6fac/static).
 Download the tables listed in `snapshotTables` plus `item_list_desc.json`
 from that same commit into a disposable directory. Add `source.json` with
 `repository`, `commit`, and `generatedAt` (the release commit timestamp, currently
-`2026-11-14T08:43:41Z`). Never replace that date with the local import time.
+`2026-11-19T17:25:51Z`). Never replace that date with the local import time.
 The exported catalogue retains the release identity and SHA-256 of every input
 table. Regenerate both artifacts together, inspect omissions, run the calculator
 and catalog tests, and publish the local BitCraft module to activate the data.
